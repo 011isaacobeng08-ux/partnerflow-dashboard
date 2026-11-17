@@ -213,8 +213,24 @@ def tickets(request: Request):
 def premium(request: Request):
     current_user(request)
     with closing(connect_db()) as con:
-        plans = con.execute("SELECT guild_id,plan,expires_at,activated_by,updated_at FROM premium ORDER BY updated_at DESC LIMIT 200").fetchall()
-        codes = con.execute("SELECT code,plan,created_at,redeemed_by,redeemed_guild_id,redeemed_at FROM codes ORDER BY created_at DESC LIMIT 100").fetchall()
+        plans = con.execute("""
+            SELECT p.guild_id, COALESCE(g.name, 'Unknown server') AS server_name,
+                   p.plan, p.expires_at, p.activated_by, p.updated_at,
+                   (SELECT COUNT(*) FROM codes c
+                    WHERE c.redeemed_guild_id = p.guild_id AND c.redeemed_at IS NOT NULL)
+                    AS redeemed_code_count
+            FROM premium p
+            LEFT JOIN bot_guilds g ON g.guild_id = p.guild_id
+            ORDER BY p.updated_at DESC LIMIT 200
+        """).fetchall()
+        codes = con.execute("""
+            SELECT c.code, c.plan, c.created_at, c.redeemed_by,
+                   c.redeemed_guild_id, c.redeemed_at,
+                   COALESCE(g.name, 'Unknown server') AS server_name
+            FROM codes c
+            LEFT JOIN bot_guilds g ON g.guild_id = c.redeemed_guild_id
+            ORDER BY c.created_at DESC LIMIT 100
+        """).fetchall()
     return {"premium": [dict(row) for row in plans], "codes": [dict(row) for row in codes]}
 
 @app.get("/api/admins")
