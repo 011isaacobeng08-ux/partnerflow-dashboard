@@ -1,30 +1,37 @@
 # PartnerFlow Admin API
 
-This is the server-side authentication and admin allowlist service for the GitHub Pages control panel.
+This backend runs in the existing PartnerFlow Python project. It imports the existing `config.py` and uses the same `config.DB_PATH` as both bots.
 
-## Security model
-- Discord OAuth uses the `identify` scope only.
-- The backend checks the Discord user ID against the separate `admin_allowlist` table.
-- `ADMIN_OWNER_ID` is the one designated owner account and is not stored as an ordinary allowlist entry.
-- Only that owner can list, grant, or revoke admin access.
-- Every protected endpoint checks the session and allowlist on the server.
-- The OAuth client secret and session signing secret belong only in private host environment variables.
+## Security
+- Discord OAuth uses only the `identify` scope.
+- The server checks each Discord user ID against a separate `admin_allowlist` table.
+- `ADMIN_OWNER_ID` is the designated owner and is separate from `OWNER_IDS`.
+- Only the designated owner can grant or revoke admins.
+- Sessions are signed, secure, HTTP-only cookies. All API requests require an approved session.
+- The OAuth secret and session secret must be private Wispbyte environment variables.
 
-## Database
-Set `ADMIN_DB_PATH` to the exact SQLite database file PartnerFlow already uses. On startup, this API creates only the `admin_allowlist` table if it does not exist. It does not reset or modify existing bot tables. Back up the database before first deployment.
+## Existing database
+The API creates only two new tables: `admin_allowlist` and `admin_audit_logs`. It does not reset or migrate the bot's existing tables. It uses the exact path from `config.DB_PATH`; do not set a second database path.
 
-## Hosting configuration
-Install dependencies from this folder's `requirements.txt`, then run:
+## Startup
+The updated root `start.py` starts this API in the same Wispbyte app when `ADMIN_API_ENABLED=1`. Keep the current command:
 
 ```sh
-uvicorn main:app --host 0.0.0.0 --port $PORT
+pip install -r requirements.txt && python start.py
 ```
 
-Set the working directory to `backend`. Configure all values from `.env.example` as private environment variables in the host panel; do not commit real values.
+Set `PORT` to the port provided by the host, if Wispbyte supplies one.
 
-In the Discord Developer Portal, add the exact value of `DISCORD_REDIRECT_URI` to the OAuth2 redirect URLs. Use the same application that owns the PartnerFlow bot.
+## Required private environment variables
+- `ADMIN_API_ENABLED=1`
+- `ADMIN_APP_ORIGIN=https://011isaacobeng08-ux.github.io/partnerflow-dashboard`
+- `ADMIN_DISCORD_CLIENT_ID`
+- `ADMIN_DISCORD_CLIENT_SECRET`
+- `ADMIN_DISCORD_REDIRECT_URI=https://YOUR-APP-HOST/auth/callback`
+- `ADMIN_SESSION_SECRET` (at least 32 characters, random)
+- `ADMIN_OWNER_ID` (your Discord user ID)
 
-## Important integration note
-This API is a separate web process. It must be launched alongside the existing main and helper bot processes by the current Wispbyte startup configuration. Do not replace the existing bot startup command until the current Wispbyte project files and process limits have been checked. Do not run a second copy of the bots or point this service at a guessed database path.
+Register the exact redirect URI in the Discord Developer Portal. Never commit real credentials to GitHub.
 
-The static website still needs its sign-in and admin-management UI wired to the deployed API URL. The API is not live until it is deployed with the correct private environment variables and verified against the existing database.
+## API scope
+Login, allowlist management, and read-only views for server records, pending reviews, verification, tickets, premium records and admin audit events are implemented. Bot-changing actions are deliberately not exposed yet.
