@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#090817"/><stop offset=".55" stop-color="#211344"/><stop offset="1" stop-color="#071c2c"/></linearGradient><linearGradient id="hair" x2="1" y2="1"><stop stop-color="#fffaff"/><stop offset=".48" stop-color="#b8a8ff"/><stop offset=".78" stop-color="#62e8ed"/><stop offset="1" stop-color="#a52bda"/></linearGradient><linearGradient id="glow" x2="1" y2="0"><stop stop-color="#f000ff"/><stop offset="1" stop-color="#00eaff"/></linearGradient></defs>
+<rect width="512" height="512" rx="112" fill="url(#bg)"/><rect x="12" y="12" width="488" height="488" rx="102" fill="none" stroke="url(#glow)" stroke-width="9"/>
+<path d="M80 310Q44 104 194 47Q260 4 358 48Q477 104 444 305L407 425H99Z" fill="#15102c" stroke="#6c42bd" stroke-width="8"/>
+<path d="M91 270Q74 78 211 40Q280 12 366 57Q441 112 425 280L385 372Q358 255 319 139Q260 220 190 143Q147 248 121 375Z" fill="url(#hair)" stroke="#20123e" stroke-width="12"/>
+<path d="M155 152Q192 91 266 106Q329 113 356 181L347 292Q319 359 245 367Q173 353 151 280Z" fill="#ffe4f3" stroke="#6d3c9d" stroke-width="7"/>
+<path d="M147 174Q178 83 267 101Q211 125 200 191Q173 181 155 225Z" fill="#fff" stroke="#7c5bc8" stroke-width="7"/>
+<path d="M285 101Q371 60 389 164Q356 137 332 183Z" fill="#c7b4ff" stroke="#4c2c89" stroke-width="8"/>
+<path d="M171 236Q214 197 253 236Q215 270 177 249Z" fill="#f4f0ff" stroke="#302052" stroke-width="8"/><ellipse cx="213" cy="239" rx="19" ry="25" fill="#20dce1"/><circle cx="219" cy="231" r="7" fill="#fff"/>
+<path d="M274 236Q314 199 354 230Q321 269 281 251Z" fill="#f4f0ff" stroke="#302052" stroke-width="8"/><ellipse cx="319" cy="234" rx="18" ry="23" fill="#20dce1"/><circle cx="325" cy="226" r="7" fill="#fff"/>
+<path d="M224 305Q272 282 322 309Q291 356 249 342Z" fill="#a62c70" stroke="#56214f" stroke-width="8"/><path d="M252 330Q278 318 301 328Q283 357 260 348Z" fill="#ff7eaa"/>
+<path d="M95 140Q151 26 263 37Q344 41 398 111Q333 82 285 132Q219 80 166 155Z" fill="url(#hair)" stroke="#31205c" stroke-width="10"/>
+<path d="M74 406L74 352L177 352L177 402L126 402L126 458L74 458Z" fill="url(#glow)" stroke="#fff" stroke-width="5"/><path d="M104 386H153L104 433Z" fill="#111329"/>
+<path d="M355 391L390 354L424 391L390 428Z" fill="none" stroke="#d34cff" stroke-width="7"/><path d="M390 364V418M363 391H417" stroke="#5deaff" stroke-width="5"/>
+</svg>
