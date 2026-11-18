@@ -97,7 +97,6 @@ async function decideReview(reviewId,action,button){
  try{
   const result=await api('/api/reviews/'+encodeURIComponent(reviewId)+'/decision',{method:'POST',body:JSON.stringify({action})});
   if(card){card.replaceChildren(node('b','', 'Decision queued'),node('small','muted', 'The main Discord bot will process the '+verb+' action.')); }
-  await loadPage('partnerships');
  }catch(error){
   buttons.forEach(b=>b.disabled=false);
   alert(error.message||'Could not queue the review decision.');
