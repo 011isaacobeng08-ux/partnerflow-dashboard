@@ -17,6 +17,7 @@ from pydantic import BaseModel
 from starlette.middleware.sessions import SessionMiddleware
 
 import config
+import db
 
 APP_ORIGIN = os.getenv("ADMIN_APP_ORIGIN", "https://011isaacobeng08-ux.github.io/partnerflow-dashboard").rstrip("/")
 DISCORD_CLIENT_ID = os.getenv("ADMIN_DISCORD_CLIENT_ID", "").strip()
@@ -194,6 +195,40 @@ def reviews(request: Request):
             item["flags"] = []
         items.append(item)
     return {"reviews": items}
+
+class ReviewDecisionInput(BaseModel):
+    action: str
+
+
+@app.post("/api/reviews/{review_id}/decision")
+async def decide_review_from_dashboard(review_id: int, payload: ReviewDecisionInput, request: Request):
+    user = current_user(request)
+    actor_id = str(user["id"])
+    # Review decisions are owner-only, even if other staff have dashboard access.
+    owner_ids = {str(value) for value in getattr(config, "OWNER_IDS", set())}
+    if actor_id != ADMIN_OWNER_ID or actor_id not in owner_ids:
+        raise HTTPException(status_code=403, detail="Only a configured bot owner can decide reviews.")
+    if payload.action not in {"accept", "decline"}:
+        raise HTTPException(status_code=422, detail="Action must be accept or decline.")
+    if not await db.main_alive():
+        raise HTTPException(status_code=503, detail="The main Discord bot is not connected to the job queue.")
+    with closing(connect_db()) as con:
+        row = con.execute("SELECT id,status FROM reviews WHERE id=?", (review_id,)).fetchone()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Review not found.")
+    if row["status"] != "pending":
+        raise HTTPException(status_code=409, detail="This review has already been handled.")
+    job_id = await db.create_job("review_decision", {
+        "review_id": review_id, "action": payload.action, "actor_id": int(actor_id)
+    })
+    with closing(connect_db()) as con:
+        con.execute(
+            "INSERT INTO admin_audit_logs(actor_id,action,target_id) VALUES (?,?,?)",
+            (actor_id, "review_" + payload.action + "_queued", str(review_id)),
+        )
+        con.commit()
+    return {"ok": True, "queued": True, "job_id": job_id, "review_id": review_id}
+
 
 @app.get("/api/verifications")
 def verifications(request: Request):
