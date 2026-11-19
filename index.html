@@ -124,7 +124,8 @@ function renderVerifications(verifications){
  verifications.forEach(v=>{
   const card=node('article','data-item review-card');
   const head=node('div','review-head');
-  head.append(node('b','','Discord user '+v.user_id),node('span','pill','SUBMITTED'));
+  const displayName=v.username||v.global_name||v.display_name||v.name||'Discord member';
+  head.append(node('b','',displayName),node('span','pill','SUBMITTED'));
   card.append(head,node('small','review-meta','Submitted '+new Date(Number(v.created_at)*1000).toLocaleString()));
   const actions=node('div','review-actions');
   const accept=node('button','btn primary','Accept');accept.type='button';accept.addEventListener('click',()=>decideVerification(v.user_id,'accept',accept));
