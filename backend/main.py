@@ -58,6 +58,9 @@ def connect_db() -> sqlite3.Connection:
         discord_id TEXT PRIMARY KEY, added_by TEXT NOT NULL,
         added_at INTEGER NOT NULL DEFAULT (CAST(strftime('%s','now') AS INTEGER))
     )""")
+    admin_columns = {row[1] for row in con.execute("PRAGMA table_info(admin_allowlist)").fetchall()}
+    if "username" not in admin_columns:
+        con.execute("ALTER TABLE admin_allowlist ADD COLUMN username TEXT")
     con.execute("""CREATE TABLE IF NOT EXISTS admin_audit_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT, actor_id TEXT NOT NULL,
         action TEXT NOT NULL, target_id TEXT,
@@ -272,11 +275,12 @@ def premium(request: Request):
 def list_admins(request: Request):
     owner_user(request)
     with closing(connect_db()) as con:
-        rows = con.execute("SELECT discord_id,added_by,added_at FROM admin_allowlist ORDER BY added_at ASC").fetchall()
+        rows = con.execute("SELECT discord_id,username,added_by,added_at FROM admin_allowlist ORDER BY added_at ASC").fetchall()
     return {"owner_id": ADMIN_OWNER_ID, "admins": [dict(row) for row in rows]}
 
 class AdminInput(BaseModel):
     discord_id: str
+    username: str
 
 def validate_discord_id(value: str) -> str:
     value = value.strip()
@@ -290,9 +294,12 @@ def validate_discord_id(value: str) -> str:
 def add_admin(payload: AdminInput, request: Request):
     owner = owner_user(request)
     discord_id = validate_discord_id(payload.discord_id)
+    username = payload.username.strip()
+    if not username or len(username) > 80:
+        raise HTTPException(status_code=422, detail="Enter a valid Discord username (1–80 characters).")
     with closing(connect_db()) as con:
         try:
-            con.execute("INSERT INTO admin_allowlist(discord_id,added_by) VALUES (?,?)", (discord_id, str(owner["id"])))
+            con.execute("INSERT INTO admin_allowlist(discord_id,username,added_by) VALUES (?,?,?)", (discord_id, username, str(owner["id"])))
             con.execute("INSERT INTO admin_audit_logs(actor_id,action,target_id) VALUES (?,'admin_granted',?)", (str(owner["id"]), discord_id))
             con.commit()
         except sqlite3.IntegrityError:
