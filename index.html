@@ -37,7 +37,7 @@
 </section>
 <section class="section" id="servers"><div class="panel"><div class="panelhead"><h2>Your Discord servers</h2><span class="pill">DEMO DATA</span></div><div class="tablewrap"><table class="table"><thead><tr><th>SERVER</th><th>SERVER ID</th><th>MEMBERS</th><th>OWNER ID</th></tr></thead><tbody id="servers-body"><tr><td colspan="4">Sign in to load connected servers.</td></tr></tbody></table></div></div></section>
 <section class="section" id="partnerships"><div class="panel"><div class="panelhead"><h2>Pending partnership reviews</h2><span class="pill">LIVE QUEUE</span></div><p class="muted">Reviews are loaded directly from the bot database. Moderation decisions still run through the main Discord bot.</p><div id="reviews-list"><p class="muted">Sign in to load pending reviews.</p></div></div></section>
-<section class="section" id="verification"><div class="panel"><div class="panelhead"><h2>Pending verifications</h2><span class="pill">READ ONLY</span></div><div id="verification-list"><p class="muted">Sign in to load pending verifications.</p></div></div></section>
+<section class="section" id="verification"><div class="panel"><div class="panelhead"><h2>Pending verifications</h2><span class="pill">LIVE QUEUE</span></div><p class="muted">Approve or reject submitted Discord verification requests. Decisions are processed by the main bot.</p><div id="verification-list"><p class="muted">Sign in to load pending verifications.</p></div></div></section>
 <section class="section" id="tickets"><div class="panel"><div class="panelhead"><h2>Support ticket queue</h2><span class="pill">SAMPLE QUEUE</span></div><div class="tablewrap"><table class="table"><thead><tr><th>TICKET</th><th>SUBJECT</th><th>STATUS</th><th>UPDATED</th></tr></thead><tbody id="tickets-body"><tr><td colspan="4">Sign in to load open tickets.</td></tr></tbody></table></div></div></section>
 <section class="section" id="activity"><div class="panel"><div class="panelhead"><h2>Admin audit log</h2><span class="pill">LIVE</span></div><div id="audit-list"><p class="muted">Sign in to load audit events.</p></div></div></section>
 <section class="section" id="settings"><div class="sectiongrid"><div class="panel empty"><div class="symbol">⚙</div><h2>General settings</h2><p>Manage workspace preferences, server configuration and notification options.</p></div><div class="panel empty"><div class="symbol">♙</div><h2>Roles & permissions</h2><p>Choose which team members can review partnerships, manage tickets and access settings.</p></div></div></section>
@@ -67,7 +67,7 @@ document.getElementById('logout-button').addEventListener('click',async()=>{try{
 async function loadPage(id){if(!window.pfUser)return;try{if(id==='overview'){const d=await api('/api/overview');const vals=[d.servers,d.pending_reviews,d.pending_verifications,d.open_tickets];document.querySelectorAll('#overview .stat .value').forEach((el,i)=>el.textContent=vals[i]??'—');document.getElementById('recent-deliveries').textContent=d.recent_deliveries??'—';const audit=await api('/api/audit');renderAudit('overview-audit',audit.events.slice(0,4));}
 if(id==='servers'){const d=await api('/api/servers');const body=document.getElementById('servers-body');body.replaceChildren();d.servers.forEach(s=>{const tr=document.createElement('tr');[s.name,s.guild_id,s.member_count??'—',s.owner_id??'—'].forEach(v=>{const td=document.createElement('td');td.textContent=String(v);tr.append(td);});body.append(tr);});if(!d.servers.length)body.innerHTML='<tr><td colspan="4">No server records found.</td></tr>';}
 if(id==='members'){const d=await api('/api/servers');renderMembers(d.servers);}if(id==='partnerships'){const d=await api('/api/reviews');renderReviews(d.reviews);}
-if(id==='verification'){const d=await api('/api/verifications');listBox('verification-list',d.verifications.map(v=>dataItem('Discord user '+v.user_id,'Created '+new Date(v.created_at*1000).toLocaleString())), 'No pending verifications.');}
+if(id==='verification'){const d=await api('/api/verifications');renderVerifications(d.verifications);}
 if(id==='tickets'){const d=await api('/api/tickets');const body=document.getElementById('tickets-body');body.replaceChildren();d.tickets.forEach(t=>{const tr=document.createElement('tr');[t.channel_id,t.guild_id,t.status,new Date(t.created_at*1000).toLocaleString()].forEach(v=>{const td=document.createElement('td');td.textContent=String(v);tr.append(td);});body.append(tr);});if(!d.tickets.length)body.innerHTML='<tr><td colspan="4">No open tickets.</td></tr>';}
 if(id==='premium'){const d=await api('/api/premium');const planPrices={weekly:'€1.99/week',monthly:'€5.99/month',lifetime:'€50.00 one-time'};const planPrice=plan=>planPrices[String(plan||'').toLowerCase()]||'Price not set';const items=d.premium.map(p=>{const box=node('div','data-item');const head=node('div','premium-head');head.append(node('b','',p.server_name||'Unknown server'),node('span','pill',p.plan||'Plan'));box.append(head,node('small','','Price: '+planPrice(p.plan)),node('small','','Confirmed paid purchases: Not tracked yet'),node('small','','Purchase history: Not recorded by the current database'),node('small','','Redeemed codes (not a purchase count): '+(p.redeemed_code_count??'—')),node('small','','Expires: '+(p.expires_at?new Date(p.expires_at*1000).toLocaleString():'Lifetime / no expiry recorded')));return box;}).concat(d.codes.map(code=>dataItem('Code '+code.code,(code.server_name||'Not redeemed to a known server')+' · '+code.plan+' · '+planPrice(code.plan)+' · '+(code.redeemed_at?'Redeemed':'Unredeemed'))));listBox('premium-list',items,'No premium records found.');}
 if(id==='activity'){const d=await api('/api/audit');renderAudit('audit-list',d.events);}
@@ -101,6 +101,37 @@ async function decideReview(reviewId,action,button){
   buttons.forEach(b=>b.disabled=false);
   alert(error.message||'Could not queue the review decision.');
  }
+}
+async function decideVerification(userId,action,button){
+ if(!window.pfUser){alert('Please sign in again before deciding a verification.');return;}
+ const verb=action==='accept'?'approve':'reject';
+ if(!confirm((action==='accept'?'Approve':'Reject')+' verification for Discord user '+userId+'?'))return;
+ const card=button.closest('.review-card');
+ const buttons=card?card.querySelectorAll('button'):[];
+ buttons.forEach(b=>b.disabled=true);
+ try{
+  await api('/api/verifications/'+encodeURIComponent(userId)+'/decision',{method:'POST',body:JSON.stringify({action})});
+  if(card){card.replaceChildren(node('b','','Decision queued'),node('small','muted','The main Discord bot will process the '+verb+' action.'));}
+ }catch(error){
+  buttons.forEach(b=>b.disabled=false);
+  alert(error.message||'Could not queue the verification decision.');
+ }
+}
+function renderVerifications(verifications){
+ const root=document.getElementById('verification-list');root.replaceChildren();
+ if(!verifications.length){root.append(node('p','muted','No pending verifications.'));return;}
+ const list=node('div','data-list');
+ verifications.forEach(v=>{
+  const card=node('article','data-item review-card');
+  const head=node('div','review-head');
+  head.append(node('b','','Discord user '+v.user_id),node('span','pill','SUBMITTED'));
+  card.append(head,node('small','review-meta','Submitted '+new Date(Number(v.created_at)*1000).toLocaleString()));
+  const actions=node('div','review-actions');
+  const accept=node('button','btn primary','Accept');accept.type='button';accept.addEventListener('click',()=>decideVerification(v.user_id,'accept',accept));
+  const reject=node('button','btn danger','Reject');reject.type='button';reject.addEventListener('click',()=>decideVerification(v.user_id,'reject',reject));
+  actions.append(accept,reject);card.append(actions);list.append(card);
+ });
+ root.append(list);
 }
 function renderReviews(reviews){
  const root=document.getElementById('reviews-list');root.replaceChildren();
