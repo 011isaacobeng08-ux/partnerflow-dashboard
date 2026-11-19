@@ -166,7 +166,7 @@ def overview(request: Request):
         return {
             "servers": count("SELECT COUNT(*) FROM bot_guilds"),
             "pending_reviews": count("SELECT COUNT(*) FROM reviews WHERE status='pending'"),
-            "pending_verifications": count("SELECT COUNT(*) FROM verifications WHERE status='pending'"),
+            "pending_verifications": count("SELECT COUNT(*) FROM verifications WHERE status='submitted'"),
             "open_tickets": count("SELECT COUNT(*) FROM tickets WHERE status='open'"),
             "premium_servers": count("SELECT COUNT(*) FROM premium"),
             "unredeemed_codes": count("SELECT COUNT(*) FROM codes WHERE redeemed_at IS NULL"),
@@ -234,7 +234,7 @@ async def decide_review_from_dashboard(review_id: int, payload: ReviewDecisionIn
 def verifications(request: Request):
     current_user(request)
     with closing(connect_db()) as con:
-        rows = con.execute("SELECT user_id,status,created_at FROM verifications WHERE status='pending' ORDER BY created_at ASC LIMIT 100").fetchall()
+        rows = con.execute("SELECT user_id,status,created_at FROM verifications WHERE status='submitted' ORDER BY created_at ASC LIMIT 100").fetchall()
     return {"verifications": [dict(row) for row in rows]}
 
 @app.get("/api/tickets")
