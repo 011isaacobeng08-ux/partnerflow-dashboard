@@ -233,6 +233,48 @@ async def decide_review_from_dashboard(review_id: int, payload: ReviewDecisionIn
     return {"ok": True, "queued": True, "job_id": job_id, "review_id": review_id}
 
 
+
+@app.get("/api/reviews/history")
+def review_history(request: Request):
+    current_user(request)
+    with closing(connect_db()) as con:
+        rows = con.execute("""
+            SELECT id, guild_id, guild_name, user_id, user_name, kind,
+                   status, created_at, decided_by, decided_at
+            FROM reviews
+            WHERE status IN ('accepted', 'declined')
+            ORDER BY COALESCE(decided_at, created_at) DESC
+            LIMIT 250
+        """).fetchall()
+    return {"reviews": [dict(row) for row in rows]}
+
+
+@app.get("/api/status")
+def bot_status(request: Request):
+    current_user(request)
+    now = int(__import__("time").time())
+    with closing(connect_db()) as con:
+        rows = con.execute(
+            "SELECT key, value FROM meta WHERE key IN ('main_heartbeat', 'helper_heartbeat')"
+        ).fetchall()
+    beats = {row["key"]: row["value"] for row in rows}
+
+    def state(key: str):
+        raw = beats.get(key)
+        if raw is None:
+            return {"state": "unknown", "last_seen": None}
+        try:
+            last_seen = int(raw)
+        except (TypeError, ValueError):
+            return {"state": "unknown", "last_seen": None}
+        age = max(0, now - last_seen)
+        return {"state": "online" if age <= 45 else "offline",
+                "last_seen": last_seen, "seconds_ago": age}
+
+    return {"main_bot": state("main_heartbeat"),
+            "helper_bot": state("helper_heartbeat")}
+
+
 @app.get("/api/verifications")
 def verifications(request: Request):
     current_user(request)
