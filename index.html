@@ -25,6 +25,26 @@ input:focus,select:focus{border-color:var(--purple)!important;box-shadow:0 0 0 3
 @media(max-width:700px){.sidebar{width:min(290px,86vw)}.top{flex-wrap:wrap}.top>div:first-child{min-width:0}.actions{width:100%;justify-content:flex-start}.actions #auth-controls{width:100%;justify-content:flex-start}.notice{align-items:flex-start}.stats{gap:9px}.columns{gap:10px}.chart{gap:7px}.table{min-width:560px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 
+body.pf-light{--bg:#f2f4fa;--surface:#ffffff;--surface2:#e9edf6;--line:#d8deea;--text:#20263a;--muted:#657089;color:var(--text);background-color:var(--bg);background-image:radial-gradient(ellipse at 12% 0%,#d9d1ff66,transparent 38%),radial-gradient(ellipse at 92% 12%,#c8eeee66,transparent 32%)}
+body.pf-light .sidebar{background:#fff}
+body.pf-light .workspace,body.pf-light .card,body.pf-light .panel,body.pf-light .select,body.pf-light .btn,body.pf-light .mobilemenu,body.pf-light .admin-form input{background:#fff;color:var(--text)}
+body.pf-light .nav button{color:#4c5670}
+body.pf-light .nav button:hover,body.pf-light .nav button.active{background:#eeeaff;color:#33265f}
+body.pf-light .review-content{background:#f5f6fb;color:#20263a;border-color:var(--line)}
+body.pf-light .notice{background:#f0edff;color:#493c72}
+body.pf-light .notice strong{color:#29213f}
+body.pf-light .data-item{background:#fff}
+.preference-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 0;border-bottom:1px solid var(--line)}
+.preference-row b,.preference-row small{display:block}
+.preference-row small{color:var(--muted);font-size:11px;margin-top:3px}
+.preference-row .select{min-width:145px}
+body.pf-compact .panel{padding:13px}
+body.pf-compact .stat{padding:12px}
+body.pf-compact .healthrow,body.pf-compact .activityrow{padding:7px 0}
+body.pf-compact .data-item{padding:8px}
+body.pf-compact .columns,body.pf-compact .sectiongrid{gap:9px}
+@media(max-width:520px){.preference-row{align-items:flex-start;flex-direction:column}.preference-row .select{width:100%}}
+
 .sidebar-backdrop{display:none}
 @media(max-width:700px){.sidebar-backdrop{display:block;position:fixed;inset:0;z-index:8;background:#050711a8;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s ease,visibility .2s ease}.sidebar-backdrop.open{opacity:1;visibility:visible;pointer-events:auto}}
 </style></head>
@@ -64,7 +84,7 @@ input:focus,select:focus{border-color:var(--purple)!important;box-shadow:0 0 0 3
 <section class="section" id="verification"><div class="panel"><div class="panelhead"><h2>Pending verifications</h2><span class="pill">LIVE QUEUE</span></div><p class="muted">Approve or reject submitted Discord verification requests. Decisions are processed by the main bot.</p><div id="verification-list"><p class="muted">Sign in to load pending verifications.</p></div></div></section>
 <section class="section" id="tickets"><div class="panel"><div class="panelhead"><h2>Support ticket queue</h2><span class="pill">SAMPLE QUEUE</span></div><div class="tablewrap"><table class="table"><thead><tr><th>TICKET</th><th>SUBJECT</th><th>STATUS</th><th>UPDATED</th></tr></thead><tbody id="tickets-body"><tr><td colspan="4">Sign in to load open tickets.</td></tr></tbody></table></div></div></section>
 <section class="section" id="activity"><div class="panel"><div class="panelhead"><h2>Admin audit log</h2><span class="pill">LIVE</span></div><div id="audit-list"><p class="muted">Sign in to load audit events.</p></div></div></section>
-<section class="section" id="settings"><div class="sectiongrid"><div class="panel empty"><div class="symbol">⚙</div><h2>General settings</h2><p>Manage workspace preferences, server configuration and notification options.</p></div><div class="panel empty"><div class="symbol">♙</div><h2>Roles & permissions</h2><p>Choose which team members can review partnerships, manage tickets and access settings.</p></div></div></section>
+<section class="section" id="settings"><div class="sectiongrid"><div class="panel"><div class="panelhead"><h2>Appearance</h2><span class="pill green">SAVED IN THIS BROWSER</span></div><p class="muted">Personal dashboard preferences. These do not change your bot or Wispbyte settings.</p><div class="preference-row"><div><b>Colour theme</b><small>Choose how the dashboard looks.</small></div><select id="pf-theme" class="select" aria-label="Colour theme"><option value="dark">Dark</option><option value="light">Light</option></select></div><div class="preference-row"><div><b>Layout spacing</b><small>Choose the amount of space between dashboard items.</small></div><select id="pf-density" class="select" aria-label="Layout spacing"><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></div><p class="muted" id="pf-preference-status" aria-live="polite">Your choices are saved automatically on this device.</p><button class="btn" id="pf-reset-preferences" type="button">Reset preferences</button></div><div class="panel empty"><div class="symbol">♙</div><h2>Roles & permissions</h2><p>Team access is managed separately by the server-side admin allowlist.</p></div></div></section>
 <section class="section" id="members"><div class="panel"><div class="panelhead"><div><h2>Members across connected servers</h2><span class="muted">LIVE SERVER MEMBER COUNTS</span></div><span class="pill green" id="members-total">— members</span></div><div class="admin-form"><input id="member-server-search" type="search" placeholder="Search server names…" aria-label="Search server names"></div><div class="tablewrap"><table class="table"><thead><tr><th>SERVER</th><th>MEMBERS</th><th>SERVER ID</th></tr></thead><tbody id="members-body"><tr><td colspan="3">Sign in to load server member counts.</td></tr></tbody></table></div><p class="muted">Counts are supplied by the bot's server snapshot. Individual member profiles are not currently exposed by the API.</p></div></section>
 <section class="section" id="premium"><div class="panel"><div class="panelhead"><h2>Premium subscriptions and codes</h2><span class="pill">READ ONLY</span></div><div id="premium-list"><p class="muted">Sign in to load premium records.</p></div></div></section>
 <section class="section" id="account"><div class="panel"><div class="panelhead"><h2>Separate admin allowlist</h2><span id="owner-label" class="pill">OWNER ONLY</span></div><p class="muted">Only Discord IDs explicitly approved here can sign in. This list is separate from the bot's OWNER_IDS. Only the designated owner account can grant or revoke access.</p><form id="add-admin-form" class="admin-form"><input id="new-admin-id" type="text" inputmode="numeric" autocomplete="off" placeholder="Discord user ID (17–20 digits)" required><input id="new-admin-username" type="text" autocomplete="off" placeholder="Discord username" maxlength="80" required><button class="btn primary" type="submit">Grant access</button></form><p id="admin-message" class="muted">Sign in as the designated owner to manage this list.</p><div id="admin-list"><p class="muted">Admin list will load after owner sign-in.</p></div></div></section>
@@ -184,5 +204,31 @@ function renderReviews(reviews){
 function renderAudit(target,events){listBox(target,events.map(e=>dataItem(e.action.replaceAll('_',' '),'By '+(e.actor_username||e.actor_name||'Admin')+' · Target '+(e.target_username||e.target_name||'record')+' · '+new Date(e.created_at*1000).toLocaleString())),'No admin access changes recorded yet.');}
 async function loadAdmins(){const d=await api('/api/admins');document.getElementById('owner-label').textContent='OWNER · '+(d.owner_username||d.owner_name||'Account');document.getElementById('admin-message').textContent='Only your owner account can grant or revoke access.';const root=document.getElementById('admin-list');root.replaceChildren();if(!d.admins.length){root.append(node('p','muted','No additional admins approved.'));return;}const list=node('div','data-list');d.admins.forEach(a=>{const row=node('div','data-item data-actions');const details=node('div');details.append(node('b','',a.username||'Discord admin'),node('small','', 'Discord ID: '+a.discord_id),node('small','', 'Added '+new Date(a.added_at*1000).toLocaleString()));const btn=node('button','btn danger','Revoke');btn.type='button';btn.addEventListener('click',async()=>{if(!confirm('Revoke admin access for '+(a.username||a.global_name||a.display_name||'this Discord admin')+'?'))return;try{await api('/api/admins/'+a.discord_id,{method:'DELETE'});await loadAdmins();}catch(e){document.getElementById('admin-message').textContent=e.message;}});row.append(details,btn);list.append(row);});root.append(list);}
 document.getElementById('add-admin-form').addEventListener('submit',async e=>{e.preventDefault();const input=document.getElementById('new-admin-id');const username=document.getElementById('new-admin-username');const message=document.getElementById('admin-message');try{await api('/api/admins',{method:'POST',body:JSON.stringify({discord_id:input.value.trim(),username:username.value.trim()})});input.value='';username.value='';message.textContent='Admin access granted.';await loadAdmins();}catch(err){message.textContent=err.message;}});
+
+function applyDashboardPreferences(){
+ let prefs={theme:'dark',density:'comfortable'};
+ try{const saved=JSON.parse(localStorage.getItem('partnerflow-dashboard-preferences')||'{}');prefs={...prefs,...saved};}catch{}
+ document.body.classList.toggle('pf-light',prefs.theme==='light');
+ document.body.classList.toggle('pf-compact',prefs.density==='compact');
+ const theme=document.getElementById('pf-theme'),density=document.getElementById('pf-density');
+ if(theme)theme.value=prefs.theme==='light'?'light':'dark';
+ if(density)density.value=prefs.density==='compact'?'compact':'comfortable';
+ return prefs;
+}
+function saveDashboardPreferences(){
+ const prefs={theme:document.getElementById('pf-theme').value,density:document.getElementById('pf-density').value};
+ document.body.classList.toggle('pf-light',prefs.theme==='light');
+ document.body.classList.toggle('pf-compact',prefs.density==='compact');
+ try{localStorage.setItem('partnerflow-dashboard-preferences',JSON.stringify(prefs));document.getElementById('pf-preference-status').textContent='Preferences saved on this device.';}
+ catch{document.getElementById('pf-preference-status').textContent='Could not save preferences in this browser.';}
+}
+applyDashboardPreferences();
+document.getElementById('pf-theme').addEventListener('change',saveDashboardPreferences);
+document.getElementById('pf-density').addEventListener('change',saveDashboardPreferences);
+document.getElementById('pf-reset-preferences').addEventListener('click',()=>{
+ try{localStorage.removeItem('partnerflow-dashboard-preferences');}catch{}
+ applyDashboardPreferences();
+ document.getElementById('pf-preference-status').textContent='Preferences reset to the defaults.';
+});
 showPage(location.hash.slice(1)||'overview',false);checkAuth();
 </script><script>if("serviceWorker" in navigator){let pfRefreshing=false;navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!pfRefreshing){pfRefreshing=true;window.location.reload();}});window.addEventListener("load",async()=>{try{const registration=await navigator.serviceWorker.register("./service-worker.js",{updateViaCache:"none"});await registration.update();}catch(err){console.warn("PartnerFlow app update check unavailable",err);}});}</script></body></html>
