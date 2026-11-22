@@ -47,6 +47,24 @@ body.pf-compact .columns,body.pf-compact .sectiongrid{gap:9px}
 
 .sidebar-backdrop{display:none}
 @media(max-width:700px){.sidebar-backdrop{display:block;position:fixed;inset:0;z-index:8;background:#050711a8;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s ease,visibility .2s ease}.sidebar-backdrop.open{opacity:1;visibility:visible;pointer-events:auto}}
+
+/* Smooth interaction polish */
+:root{scroll-behavior:smooth}
+.sidebar{scrollbar-width:thin;scrollbar-color:#34304b transparent}
+.sidebar::-webkit-scrollbar{width:6px}
+.sidebar::-webkit-scrollbar-thumb{background:#34304b;border-radius:20px}
+@media(max-width:700px){
+ .sidebar{transition:transform .32s cubic-bezier(.22,1,.36,1);touch-action:pan-y}
+ .sidebar-backdrop{transition:opacity .28s ease,visibility .28s ease}
+ .nav button{min-height:46px;transition:background-color .2s ease,color .2s ease,box-shadow .2s ease,transform .2s cubic-bezier(.22,1,.36,1)}
+ .nav button:active{transform:scale(.985)}
+ .main{transition:opacity .18s ease}
+}
+.section.active{animation:section-in .28s cubic-bezier(.22,1,.36,1) both}
+@media(prefers-reduced-motion:reduce){
+ .sidebar,.sidebar-backdrop,.nav button,.main,.section.active{transition:none!important;animation:none!important}
+}
+
 </style></head>
 <body><div class="layout">
 <aside class="sidebar" id="sidebar"><div class="brand"><div class="mark" aria-label="PartnerFlow"><img src="./icons/icon-192.png" alt="PartnerFlow"></div>PartnerFlow</div>
